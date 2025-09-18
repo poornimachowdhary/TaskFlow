@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Teams in Space</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #1e3a8a;
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0 20px;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+        }
+
+        .navbar {
+            background: #1e3a8a;
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kanban-container {
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: calc(100vh - 60px);
+        }
+
+        .kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+
+        .kanban-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .kanban-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 300px;
+        }
+
+        .quick-filters {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .kanban-column {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .kanban-column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .kanban-column-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kanban-column-count {
+            background: #e0e0e0;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .task-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        .task-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .task-label {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .label-space-travel {
+            background: #fbbf24;
+            color: #92400e;
+        }
+
+        .label-mars-office {
+            background: #f97316;
+            color: white;
+        }
+
+        .label-seespaceez {
+            background: #60a5fa;
+            color: white;
+        }
+
+        .label-large-team {
+            background: #a78bfa;
+            color: white;
+        }
+
+        .task-priority-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .priority-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .priority-high {
+            background: #ef4444;
+        }
+
+        .priority-medium {
+            background: #f59e0b;
+        }
+
+        .priority-low {
+            background: #10b981;
+        }
+
+        .priority-urgent {
+            background: #dc2626;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .task-id {
+            font-size: 11px;
+            color: #666;
+            font-weight: 500;
+            font-family: monospace;
+        }
+
+        .column-todo {
+            border-left: 4px solid #6b7280;
+        }
+
+        .column-in-progress {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .column-code-review {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .column-done {
+            border-left: 4px solid #10b981;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #1e3a8a;
+            color: white;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-container">
+            <div class="login-card">
+                <h1 class="login-title">Welcome to TaskFlow</h1>
+                <p class="login-subtitle">Sign in to your account</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-input" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 24px; font-size: 14px; color: #6b7280;">
+                    Demo credentials: <strong>scrum_master</strong> / <strong>password123</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div id="mainApp" class="app-container hidden">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">🚀</div>
+                    <h2 style="color: white; font-size: 18px; font-weight: 600;">Teams in Space</h2>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 4px 0 0 0;">Software project</p>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="#" class="active">📊 Board</a></li>
+                        <li><a href="#">📋 Backlog</a></li>
+                        <li><a href="#">📈 Reports</a></li>
+                        <li><a href="#">🚀 Releases</a></li>
+                        <li><a href="#">🧩 Components</a></li>
+                        <li><a href="#">✅ Issues</a></li>
+                        <li><a href="#">💻 Repository</a></li>
+                        <li><a href="#">➕ Add Item</a></li>
+                        <li><a href="#">⚙️ Settings</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Navbar -->
+                <div class="navbar">
+                    <div class="navbar-brand">
+                        <div style="width: 32px; height: 32px; background: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #1e3a8a; font-weight: bold;">🚀</div>
+                        <div>
+                            <div style="font-size: 18px; font-weight: 600;">Teams in Space</div>
+                            <div style="font-size: 12px; opacity: 0.8;">Software project</div>
+                        </div>
+                    </div>
+                    
+                    <div class="navbar-actions">
+                        <button style="background: rgba(255,255,255,0.1); border: none; border-radius: 6px; padding: 8px 16px; color: white; font-size: 14px; font-weight: 500; cursor: pointer;">Release</button>
+                        <button style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 8px;">⋯</button>
+                    </div>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="kanban-container">
+                    <div class="kanban-header">
+                        <h1 class="kanban-title">Board</h1>
+                        <div class="kanban-controls">
+                            <input type="text" placeholder="Search tasks..." class="search-input">
+                            <select class="quick-filters">
+                                <option>Quick Filters</option>
+                                <option>My Tasks</option>
+                                <option>Recently Updated</option>
+                                <option>High Priority</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="kanban-board">
+                        <!-- TO DO Column -->
+                        <div class="kanban-column column-todo">
+                            <div class="kanban-column-header">
+                                <h3 class="kanban-column-title">TO DO</h3>
+                                <span class="kanban-column-count">5</span>
+                            </div>
+                            
+                            <div class="task-card">
+                                <div class="task-label label-space-travel">SPACE TRAVEL PARTNERS</div>
+                                <div class="task-title">Engage Jupiter Express for outer solar system travel</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">5</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-25</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-mars-office">Local Mars Office</div>
+                                <div class="task-title">Create 90 day plans for all departments in the Mars Office</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-urgent">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">9</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-12</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-space-travel">Space Travel Partners</div>
+                                <div class="task-title">Engage Saturn's Rings Resort as a preferred provider</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">3</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-17</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Enable Speedy SpaceCraft as the preferred</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">4</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-19</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Establish Mars Office infrastructure requirements</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">6</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-21</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IN PROGRESS Column -->
+                        <div class="kanban-column column-in-progress">
+                            <div class="kanban-column-header">
+                                <h3 class="kanban-column-title">IN PROGRESS</h3>
+                                <span class="kanban-column-count">5</span>
+                            </div>
+                            
+                            <div class="task-card">
+                                <div class="task-label label-seespaceez">SeeSpaceEZ Plus</div>
+                                <div class="task-title">Requesting available flights is now taking > 5 seconds</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">3</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-8</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-space-travel">Space Travel Partners</div>
+                                <div class="task-title">Engage Saturn Shuttle Lines for group tours</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">4</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-15</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-mars-office">Local Mars Office</div>
+                                <div class="task-title">Establish a catering vendor to provide meal service</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">4</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-15</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Implement real-time communication system</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">7</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-22</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Design Mars Office floor plan</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">5</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-24</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CODE REVIEW Column -->
+                        <div class="kanban-column column-code-review">
+                            <div class="kanban-column-header">
+                                <h3 class="kanban-column-title">CODE REVIEW</h3>
+                                <span class="kanban-column-count">2</span>
+                            </div>
+                            
+                            <div class="task-card">
+                                <div class="task-label label-mars-office">Local Mars Office</div>
+                                <div class="task-title">Register with the Mars Ministry of Revenue</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">3</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-11</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-mars-office">Local Mars Office</div>
+                                <div class="task-title">Draft network plan for Mars Office</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">3</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-15</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DONE Column -->
+                        <div class="kanban-column column-done">
+                            <div class="kanban-column-header">
+                                <h3 class="kanban-column-title">DONE</h3>
+                                <span class="kanban-column-count">8</span>
+                            </div>
+                            
+                            <div class="task-card">
+                                <div class="task-label label-large-team">Large Team Support</div>
+                                <div class="task-title">Homepage footer uses an inline style - should use a class</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-low">🟢</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">3</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-68</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-space-travel">Space Travel Partners</div>
+                                <div class="task-title">Engage JetShuttle SpaceWays for travel</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">5</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-23</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-space-travel">Space Travel Partners</div>
+                                <div class="task-title">Engage Saturn Shuttle Lines for group tours</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">1</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-15</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-label label-mars-office">Local Mars Office</div>
+                                <div class="task-title">Establish a catering vendor to provide meal service</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">4</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-15</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Set up Mars Office communication protocols</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">6</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-20</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Implement Mars Office security systems</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-high">🔴</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">8</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-18</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Create Mars Office emergency procedures</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">4</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-16</span>
+                                </div>
+                            </div>
+
+                            <div class="task-card">
+                                <div class="task-title">Establish Mars Office supply chain</div>
+                                <div class="task-priority-container">
+                                    <div class="priority-icon priority-medium">🟡</div>
+                                    <span style="font-size: 12px; color: #666; font-weight: 500;">5</span>
+                                </div>
+                                <div class="task-footer">
+                                    <span class="task-id">TIS-14</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple login functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Simple validation for demo
+            if (username === 'scrum_master' && password === 'password123') {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            } else {
+                alert('Invalid credentials. Use: scrum_master / password123');
+            }
+        });
+
+        // Add some interactivity to task cards
+        document.querySelectorAll('.task-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+
+        // Add hover effects
+        document.querySelectorAll('.kanban-column').forEach(column => {
+            column.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#f0f9ff';
+                this.style.border = '2px dashed #1e3a8a';
+            });
+
+            column.addEventListener('dragleave', function(e) {
+                this.style.backgroundColor = 'white';
+                this.style.border = '1px solid #e0e0e0';
+            });
+        });
+    </script>
+</body>
+</html>
